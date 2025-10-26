@@ -47,20 +47,8 @@ public class PessoaController {
     
     @PatchMapping("/{id}")
     public ResponseEntity<Pessoa> atualizarAtributo(@PathVariable Long id, @RequestBody Map<String, Object> updates) {
-        for (Map.Entry<String, Object> entry : updates.entrySet()) {
-            String atributo = entry.getKey();
-            Object valor = entry.getValue();
-            
-            if (atributo.equals("dataNascimento") || atributo.equals("dataAdmissao")) {
-                if (valor != null) {
-                    valor = LocalDate.parse(valor.toString());
-                }
-            }
-            
-            pessoaService.atualizarAtributo(id, atributo, valor);
-        }
-
-        return ResponseEntity.ok(pessoaService.buscarPorId(id));
+        Pessoa pessoaAtualizada = pessoaService.atualizarParcialmente(id, updates);
+        return ResponseEntity.ok(pessoaAtualizada);
     }
     
     @DeleteMapping("/{id}")

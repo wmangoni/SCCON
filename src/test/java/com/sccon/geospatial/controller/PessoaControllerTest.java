@@ -33,7 +33,6 @@ class PessoaControllerTest {
     private ObjectMapper objectMapper;
 
     private Pessoa pessoaTeste;
-    private List<Pessoa> pessoasTeste;
 
     @BeforeEach
     void setUp() {
@@ -41,15 +40,6 @@ class PessoaControllerTest {
             LocalDate.of(2000, 4, 6), 
             LocalDate.of(2020, 5, 10));
         
-        Pessoa pessoa2 = new Pessoa(2L, "Maria Santos", 
-            LocalDate.of(1995, 8, 15), 
-            LocalDate.of(2019, 3, 20));
-        
-        Pessoa pessoa3 = new Pessoa(3L, "João Oliveira", 
-            LocalDate.of(1988, 12, 3), 
-            LocalDate.of(2021, 1, 15));
-        
-        pessoasTeste = Arrays.asList(pessoaTeste, pessoa2, pessoa3);
     }
 
     @Test
@@ -220,8 +210,7 @@ class PessoaControllerTest {
             LocalDate.of(2000, 4, 6), 
             LocalDate.of(2020, 5, 10));
 
-        when(pessoaService.buscarPorId(1L)).thenReturn(pessoaAtualizada);
-        when(pessoaService.atualizarAtributo(eq(1L), eq("nome"), any())).thenReturn(pessoaAtualizada);
+        when(pessoaService.atualizarParcialmente(eq(1L), any())).thenReturn(pessoaAtualizada);
 
         mockMvc.perform(patch("/person/1")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -229,7 +218,7 @@ class PessoaControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nome").value("José Silva Modificado"));
 
-        verify(pessoaService, times(1)).atualizarAtributo(eq(1L), eq("nome"), any());
+        verify(pessoaService, times(1)).atualizarParcialmente(eq(1L), any());
     }
 
     @Test
@@ -238,20 +227,19 @@ class PessoaControllerTest {
             LocalDate.of(2000, 4, 7), 
             LocalDate.of(2020, 5, 10));
 
-        when(pessoaService.buscarPorId(1L)).thenReturn(pessoaAtualizada);
-        when(pessoaService.atualizarAtributo(eq(1L), eq("dataNascimento"), any())).thenReturn(pessoaAtualizada);
+        when(pessoaService.atualizarParcialmente(eq(1L), any())).thenReturn(pessoaAtualizada);
 
         mockMvc.perform(patch("/person/1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"dataNascimento\":\"2000-04-07\"}"))
                 .andExpect(status().isOk());
 
-        verify(pessoaService, times(1)).atualizarAtributo(eq(1L), eq("dataNascimento"), any());
+        verify(pessoaService, times(1)).atualizarParcialmente(eq(1L), any());
     }
 
     @Test
     void atualizarAtributo_QuandoPessoaNaoExiste_DeveRetornar404() throws Exception {
-        when(pessoaService.buscarPorId(999L))
+        when(pessoaService.atualizarParcialmente(eq(999L), any()))
                 .thenThrow(new com.sccon.geospatial.exception.PessoaNotFoundException("Pessoa com ID 999 não encontrada"));
 
         mockMvc.perform(patch("/person/999")
@@ -260,13 +248,12 @@ class PessoaControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error").value("Pessoa com ID 999 não encontrada"));
 
-        verify(pessoaService, times(1)).buscarPorId(999L);
+        verify(pessoaService, times(1)).atualizarParcialmente(eq(999L), any());
     }
 
     @Test
     void atualizarAtributo_ComAtributoInvalido_DeveRetornar400() throws Exception {
-        when(pessoaService.buscarPorId(1L)).thenReturn(pessoaTeste);
-        when(pessoaService.atualizarAtributo(eq(1L), eq("atributoInvalido"), any()))
+        when(pessoaService.atualizarParcialmente(eq(1L), any()))
                 .thenThrow(new com.sccon.geospatial.exception.InvalidParameterException("Atributo 'atributoInvalido' não é válido"));
 
         mockMvc.perform(patch("/person/1")
@@ -275,7 +262,7 @@ class PessoaControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("Atributo 'atributoInvalido' não é válido"));
 
-        verify(pessoaService, times(1)).atualizarAtributo(eq(1L), eq("atributoInvalido"), any());
+        verify(pessoaService, times(1)).atualizarParcialmente(eq(1L), any());
     }
 
     @Test
@@ -429,8 +416,7 @@ class PessoaControllerTest {
 
     @Test
     void atualizarAtributo_ComNomeVazio_DeveRetornar400() throws Exception {
-        when(pessoaService.buscarPorId(1L)).thenReturn(pessoaTeste);
-        when(pessoaService.atualizarAtributo(eq(1L), eq("nome"), any()))
+        when(pessoaService.atualizarParcialmente(eq(1L), any()))
                 .thenThrow(new com.sccon.geospatial.exception.InvalidParameterException("Nome não pode ser vazio"));
 
         mockMvc.perform(patch("/person/1")
@@ -439,13 +425,12 @@ class PessoaControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("Nome não pode ser vazio"));
 
-        verify(pessoaService, times(1)).atualizarAtributo(eq(1L), eq("nome"), any());
+        verify(pessoaService, times(1)).atualizarParcialmente(eq(1L), any());
     }
 
     @Test
     void atualizarAtributo_ComDataNascimentoNula_DeveRetornar400() throws Exception {
-        when(pessoaService.buscarPorId(1L)).thenReturn(pessoaTeste);
-        when(pessoaService.atualizarAtributo(eq(1L), eq("dataNascimento"), any()))
+        when(pessoaService.atualizarParcialmente(eq(1L), any()))
                 .thenThrow(new com.sccon.geospatial.exception.InvalidParameterException("Data de nascimento não pode ser nula"));
 
         mockMvc.perform(patch("/person/1")
@@ -454,6 +439,6 @@ class PessoaControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("Data de nascimento não pode ser nula"));
 
-        verify(pessoaService, times(1)).atualizarAtributo(eq(1L), eq("dataNascimento"), any());
+        verify(pessoaService, times(1)).atualizarParcialmente(eq(1L), any());
     }
 }

@@ -10,7 +10,9 @@ import org.junit.jupiter.api.Test;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -253,5 +255,74 @@ class PessoaServiceTest {
         assertThrows(InvalidParameterException.class, () -> {
             pessoaService.criarPessoa(null);
         });
+    }
+
+    @Test
+    void atualizarParcialmente_ComUmAtributo_DeveAtualizarApenasEsseAtributo() {
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("nome", "José Silva Modificado");
+        
+        Pessoa pessoaAtualizada = pessoaService.atualizarParcialmente(1L, updates);
+        
+        assertEquals("José Silva Modificado", pessoaAtualizada.getNome());
+        // Verifica que outros atributos não foram alterados
+        assertEquals(LocalDate.of(2000, 4, 6), pessoaAtualizada.getDataNascimento());
+        assertEquals(LocalDate.of(2020, 5, 10), pessoaAtualizada.getDataAdmissao());
+    }
+
+    @Test
+    void atualizarParcialmente_ComMultiplosAtributos_DeveAtualizarTodosOsAtributos() {
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("nome", "José Silva Atualizado");
+        updates.put("dataNascimento", "2000-04-07");
+        updates.put("dataAdmissao", "2020-05-11");
+        
+        Pessoa pessoaAtualizada = pessoaService.atualizarParcialmente(1L, updates);
+        
+        assertEquals("José Silva Atualizado", pessoaAtualizada.getNome());
+        assertEquals(LocalDate.of(2000, 4, 7), pessoaAtualizada.getDataNascimento());
+        assertEquals(LocalDate.of(2020, 5, 11), pessoaAtualizada.getDataAdmissao());
+    }
+
+    @Test
+    void atualizarParcialmente_ComAtributoInvalido_DeveLancarExcecao() {
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("atributoInvalido", "valor");
+        
+        assertThrows(InvalidParameterException.class, () -> {
+            pessoaService.atualizarParcialmente(1L, updates);
+        });
+    }
+
+    @Test
+    void atualizarParcialmente_ComNomeVazio_DeveLancarExcecao() {
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("nome", "");
+        
+        assertThrows(InvalidParameterException.class, () -> {
+            pessoaService.atualizarParcialmente(1L, updates);
+        });
+    }
+
+    @Test
+    void atualizarParcialmente_ComPessoaNaoEncontrada_DeveLancarExcecao() {
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("nome", "Teste");
+        
+        assertThrows(PessoaNotFoundException.class, () -> {
+            pessoaService.atualizarParcialmente(999L, updates);
+        });
+    }
+
+    @Test
+    void atualizarParcialmente_ComMapVazio_DeveRetornarPessoaInalterada() {
+        Map<String, Object> updates = new HashMap<>();
+        
+        Pessoa pessoaOriginal = pessoaService.buscarPorId(1L);
+        Pessoa pessoaAtualizada = pessoaService.atualizarParcialmente(1L, updates);
+        
+        assertEquals(pessoaOriginal.getNome(), pessoaAtualizada.getNome());
+        assertEquals(pessoaOriginal.getDataNascimento(), pessoaAtualizada.getDataNascimento());
+        assertEquals(pessoaOriginal.getDataAdmissao(), pessoaAtualizada.getDataAdmissao());
     }
 }

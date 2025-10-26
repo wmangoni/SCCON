@@ -109,6 +109,40 @@ public class PessoaService {
         return pessoa;
     }
     
+    public Pessoa atualizarParcialmente(Long id, Map<String, Object> updates) {
+        Pessoa pessoa = buscarPorId(id);
+        
+        for (Map.Entry<String, Object> entry : updates.entrySet()) {
+            String prop = entry.getKey();
+            Object val = entry.getValue();
+
+            if (prop.equals("dataNascimento") || prop.equals("dataAdmissao")) {
+                if (val != null) {
+                    val = LocalDate.parse(val.toString());
+                }
+            }
+
+            switch (prop.toLowerCase()) {
+                case "nome":
+                    pessoa.setNome((String) val);
+                    pessoa.validaNome();
+                    break;
+                case "datanascimento":
+                    pessoa.setDataNascimento((LocalDate) val);
+                    pessoa.validaDataNescimento();
+                    break;
+                case "dataadmissao":
+                    pessoa.setDataAdmissao((LocalDate) val);
+                    pessoa.validaDataAdminissao();
+                    break;
+                default:
+                    throw new InvalidParameterException("Atributo '" + prop + "' não é válido");
+            }
+        }
+        
+        return pessoa;
+    }
+    
     public void removerPessoa(Long id) {
         buscarPorId(id);
         pessoas.remove(id);

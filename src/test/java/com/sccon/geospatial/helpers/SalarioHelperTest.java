@@ -66,7 +66,6 @@ class SalarioHelperTest {
 
     @Test
     void calcularSalario_ComPessoaRecemAdmitida_DeveRetornarSalarioBase() {
-        // Pessoa admitida hoje
         Pessoa pessoaRecemAdmitida = new Pessoa(3L, "Novo Funcionário", 
             LocalDate.of(1990, 1, 1), 
             LocalDate.of(2023, 2, 7));
